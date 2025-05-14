@@ -10,6 +10,14 @@ const styles = StyleSheet.create({
   },
   textLink: {color: 'blue'},
   container: {flex: 1},
+  name: {
+    color: 'black',
+    fontWeight: 'bold',
+    textAlign: 'left',
+  },
+  message: {
+    color: 'grey',
+  },
 });
 
 export default styles;

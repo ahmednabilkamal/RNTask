@@ -1,11 +1,20 @@
-import React, {useState} from 'react';
-import {View, FlatList, Switch, Text} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  FlatList,
+  Switch,
+  Text,
+  Platform,
+  PermissionsAndroid,
+} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
+import Contacts from 'react-native-contacts';
 
 import {RootState} from '../store';
 import ContactItem from '../components/ContactItem';
 import FavoriteModal from '../modals/FavoriteModal';
 import {addFavorite, removeFavorite} from '../store/favoritesSlice';
+import {setContacts} from '../store/contactsSlice';
 import styles from './styles';
 
 const HomeScreen = () => {
@@ -21,6 +30,34 @@ const HomeScreen = () => {
   const [showFullMessages, setShowFullMessages] = useState<{
     [id: string]: boolean;
   }>({});
+
+  useEffect(() => {
+    requestPermissionAndLoad();
+  }, []);
+
+  const requestPermissionAndLoad = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.warn('Contacts permission denied');
+        return;
+      }
+
+      Contacts.getAll()
+        .then(contact => {
+          const formatted = contact.map(c => ({
+            id: c.recordID,
+            name: `${c.givenName || ''} ${c.familyName || ''}`.trim(),
+          }));
+          dispatch(setContacts(formatted));
+        })
+        .catch(err => {
+          console.warn('Failed to load contacts:', err);
+        });
+    }
+  };
 
   const toggleShowMessage = (id: string) => {
     setShowFullMessages(prev => ({...prev, [id]: !prev[id]}));
@@ -55,11 +92,13 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.status}>
-        <Text>Show favorite Only</Text>
+        <Text style={styles.textStatus}>Show favorite Only</Text>
         <Switch
           style={styles.switch}
           value={showOnlyFavorite}
           onValueChange={setShowOnlyFavorite}
+          trackColor={{false: '#ccc', true: '#4CAF50'}}
+          thumbColor={showOnlyFavorite ? '#ffffff' : '#f4f3f4'}
         />
       </View>
 
@@ -79,6 +118,7 @@ const HomeScreen = () => {
             />
           );
         }}
+        ItemSeparatorComponent={() => <View style={styles.lineSeparator} />}
       />
 
       {selectedContact && (

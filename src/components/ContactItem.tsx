@@ -34,10 +34,14 @@ const ContactItem = ({
       </View>
 
       <View style={styles.container}>
-        <Text>{name}</Text>
+        <Text style={styles.name}>{name}</Text>
         {isFavorite && message && (
           <>
-            <Text numberOfLines={showFullMessage ? 10 : 2}>{message}</Text>
+            <Text
+              numberOfLines={showFullMessage ? 10 : 2}
+              style={styles.message}>
+              {message}
+            </Text>
 
             {message.length > 60 && (
               <TouchableOpacity onPress={toggleShowMessage}>
